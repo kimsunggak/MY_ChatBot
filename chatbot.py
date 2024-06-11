@@ -6,6 +6,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
+from langchain.document_loaders import PyPDFLoader
 
 @st.cache_resource
 def load_and_embed_pdfs():
