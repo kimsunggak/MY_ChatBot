@@ -11,7 +11,7 @@ from langchain.document_loaders import PyPDFLoader
 @st.cache_resource
 def load_and_embed_pdfs():
      # PDF 파일 문서 로드
-    pdf_loader = PyPDFLoader('2024-1학기 수강신청 및 강의시간표_20240305.pdf', recursive=True)
+    pdf_loader = PyPDFLoader('2024-1학기 수강신청 및 강의시간표_20240305.pdf')
     # 로드한 문서 documents에 저장
     documents = pdf_loader.load()
      # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
