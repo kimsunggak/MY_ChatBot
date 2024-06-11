@@ -7,8 +7,53 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
 
+import wave
+import sys
 
+import pyaudio
 
+CHUNK = 1024
+
+if len(sys.argv) < 2:
+    print(f'Plays a wave file. Usage: {sys.argv[0]} filename.wav')
+    sys.exit(-1)
+
+with wave.open(sys.argv[1], 'rb') as wf:
+    # Instantiate PyAudio and initialize PortAudio system resources (1)
+    p = pyaudio.PyAudio()
+
+    # Open stream (2)
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True)
+
+    # Play samples from the wave file (3)
+    while len(data := wf.readframes(CHUNK)):  # Requires Python 3.8+ for :=
+        stream.write(data)
+
+    # Close stream (4)
+    stream.close()
+
+    # Release PortAudio system resources (5)
+    p.terminate()
+
+@st.cache_resource
+def load_and_embed_pdfs():
+     # PDF 파일 문서 로드
+    pdf_loader = DirectoryLoader('.', glob="*.pdf")
+    # 로드한 문서 documents에 저장
+    documents = pdf_loader.load()
+     # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    texts = text_splitter.split_documents(documents)
+
+     # 텍스트 임베딩 생성
+    embedding = OpenAIEmbeddings(openai_api_key=st.session_state["OPENAI_API"])
+    # 나눠진 텍스트 덩어리들을 벡터로 변환한 후 데이터베이스에 저장
+    vectordb = Chroma.from_documents(documents=texts, embedding=embedding)
+
+    return vectordb
 
 def main():
     # 기본 페이지 설정
@@ -19,6 +64,7 @@ def main():
         
     )
 
+    
     st.title("수강신청 챗봇")
 
     st.header("")
@@ -61,18 +107,8 @@ def main():
         # 사용자가 입력한 메시지를 session_state 메시지에 추가하고 표시
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.chat_message("user").write(prompt)
-             # PDF 파일 문서 로드
-        pdf_loader = DirectoryLoader('.', glob="*.pdf")
-        # 로드한 문서 documents에 저장
-        documents = pdf_loader.load()
-        # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        texts = text_splitter.split_documents(documents)
-
-        # 텍스트 임베딩 생성
-        embedding = OpenAIEmbeddings(openai_api_key=st.session_state["OPENAI_API"])
-        # 나눠진 텍스트 덩어리들을 벡터로 변환한 후 데이터베이스에 저장
-        vectordb = Chroma.from_documents(documents=texts, embedding=embedding)
+        
+        vectordb = load_and_embed_pdfs()
         retriever = vectordb.as_retriever()
 
         qa_chain = RetrievalQA.from_chain_type(
