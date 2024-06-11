@@ -7,22 +7,8 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
 
-@st.cache_resource
-def load_and_embed_pdfs():
-     # PDF 파일 문서 로드
-    pdf_loader = DirectoryLoader('.', glob="*.pdf")
-    # 로드한 문서 documents에 저장
-    documents = pdf_loader.load()
-     # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    texts = text_splitter.split_documents(documents)
 
-     # 텍스트 임베딩 생성
-    embedding = OpenAIEmbeddings(openai_api_key=st.session_state["OPENAI_API"])
-    # 나눠진 텍스트 덩어리들을 벡터로 변환한 후 데이터베이스에 저장
-    vectordb = Chroma.from_documents(documents=texts, embedding=embedding)
 
-    return vectordb
 
 def main():
     # 기본 페이지 설정
@@ -31,17 +17,6 @@ def main():
         layout="wide",
         page_icon="https://search.pstatic.net/sunny/?src=https%3A%2F%2Fwww.shutterstock.com%2Fimage-vector%2Fhuman-brain-icon-simple-outline-260nw-2140916827.jpg&type=ff332_332"
         
-    )
-# CSS 스타일을 사용하여 배경색 변경
-    st.markdown(
-        """
-        <style>
-        body {
-            background-color: blue;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
     )
 
     st.title("수강신청 챗봇")
@@ -86,8 +61,18 @@ def main():
         # 사용자가 입력한 메시지를 session_state 메시지에 추가하고 표시
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.chat_message("user").write(prompt)
-        
-        vectordb = load_and_embed_pdfs()
+             # PDF 파일 문서 로드
+        pdf_loader = DirectoryLoader('.', glob="*.pdf")
+        # 로드한 문서 documents에 저장
+        documents = pdf_loader.load()
+        # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        texts = text_splitter.split_documents(documents)
+
+        # 텍스트 임베딩 생성
+        embedding = OpenAIEmbeddings(openai_api_key=st.session_state["OPENAI_API"])
+        # 나눠진 텍스트 덩어리들을 벡터로 변환한 후 데이터베이스에 저장
+        vectordb = Chroma.from_documents(documents=texts, embedding=embedding)
         retriever = vectordb.as_retriever()
 
         qa_chain = RetrievalQA.from_chain_type(
