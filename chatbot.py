@@ -16,7 +16,12 @@ def load_and_embed_pdfs():
      # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_documents(documents)
+    # 텍스트 임베딩 생성
+    embedding = OpenAIEmbeddings(openai_api_key=st.session_state["OPENAI_API"])
+    # 나눠진 텍스트 덩어리들을 벡터로 변환한 후 데이터베이스에 저장
+    vectordb = Chroma.from_documents(documents=texts, embedding=embedding)
 
+    return vectordb
 def main():
     st.set_page_config(
         page_title = "수강신청 챗봇",
