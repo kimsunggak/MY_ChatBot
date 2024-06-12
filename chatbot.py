@@ -1,3 +1,9 @@
+import sqlite3
+if sqlite3.sqlite_version_info < (3,35,0):
+    __import__("pysqlite3")
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 import streamlit as st
 import openai
 from langchain_community.document_loaders import DirectoryLoader
