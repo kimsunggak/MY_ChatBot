@@ -43,7 +43,7 @@ def main():
     st.set_page_config(
         page_title = "수강신청 챗봇",
         layout = "wide",
-        page_icon = ""
+        page_icon = "https://www.google.com/url?sa=i&url=https%3A%2F%2Fgongu.copyright.or.kr%2Fgongu%2Fwrt%2Fwrt%2Fview.do%3FwrtSn%3D13156879%26menuNo%3D200018&psig=AOvVaw2GoQwWRz4PZpSA_icu1w5k&ust=1718242275806000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCNjlpMT11IYDFQAAAAAdAAAAABAE"
     )
     st.title("수강신청 챗봇")
     st.header("")
