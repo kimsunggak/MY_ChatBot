@@ -7,11 +7,27 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
 from langchain.document_loaders import PyPDFLoader
+import pdfplumber
 
 @st.cache_resource
 def load_and_embed_pdfs():
+    def extract_tables_from_pdf(file_path):
+        with pdfplumber.open(file_path) as pdf:
+            all_tables = []
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                all_tables.extend(tables)
+            return all_tables
+        
+    def tables_to_text(tables):
+        text = ""
+        for table in tables:
+            for row in table:
+                text += " | ".join([str(cell) for cell in row]) + "\n"
+        return text
+    
      # PDF 파일 문서 로드
-    pdf_loader = PyPDFLoader('2024-1학기 수강신청 및 강의시간표_20240305.pdf')
+    pdf_loader= DirectoryLoader(path='.', glob="*.pdf", loader_cls=PyPDFLoader)
     # 로드한 문서 documents에 저장
     documents = pdf_loader.load()
      # 텍스트를 특정 크기로 나눌 때 문맥 유지와 정보 손실 방지를 위해 overlap 적용
@@ -31,6 +47,14 @@ def main():
     )
     st.title("수강신청 챗봇")
     st.header("")
+    st.markdown("""
+      예시) 얻고자하는 정보를 정확하게 질문하여야합니다 :)
+    - 인공지능융합공학부에는 어떤 전공과목들이 있는지 알고싶어 O
+    - 수강 신청 기간은 언제인가요? O
+    - 교수님들 연락처를 알려줘 X 
+    - 전공과목을 알려줘 X
+    """)
+    
     
     with st.sidebar:
         st.session_state["OPENAI_API"] = st.text_input(label="OPENAI API키",placeholder="당신의 API KEY를 입력하세요",value="",type="password")
