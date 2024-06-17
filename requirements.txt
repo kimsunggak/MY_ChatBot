@@ -147,6 +147,7 @@ python-dotenv==1.0.1
 python-iso639==2024.4.27
 python-magic==0.4.27
 python-multipart==0.0.9
+pysqlite3-binary
 pytz==2024.1
 PyYAML==6.0.1
 rapidfuzz==3.9.3
